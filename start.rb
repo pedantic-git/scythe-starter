@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+# start.rb Alice Bob Charlie Dave Erin
+
 require 'bundler/inline'
 
 gemfile do
@@ -27,8 +29,13 @@ MATS = {
   Innovative:   { n: '3A' }
 }
 
+S_BONUSES = [
+  'Tunnels adjacent', 'Lakes adjacent', 'Encounters adjacent',
+  'On tunnels', 'In a row', 'On farms or tundras'
+]
+
 class Scythe
-  attr_reader :setups, :faction_queue, :mat_queue
+  attr_reader :setups, :faction_queue, :mat_queue, :s_bonus
   
   def initialize(players, options={})
     fail "Number of players must be between 1 and 7" if !(1..7).include? players.length
@@ -37,11 +44,14 @@ class Scythe
     @mat_queue = MATS.keys.shuffle
     
     @setups = players.to_h {|player| [player, next_setup]}
+    @s_bonus = S_BONUSES.sample
   end
   
   def print
+    puts "Structure bonus: #{s_bonus}"
+    puts
     setups.each do |player, setup|
-      puts "#{player}: #{faction_s setup[:faction]} / #{mat_s setup[:mat]}"
+      puts "%#{player_length}s: %s / %s" % [player, faction_s(setup[:faction]), mat_s(setup[:mat])]
     end
   end
   
@@ -59,11 +69,15 @@ class Scythe
   end
   
   def faction_s(f)
-    Paint[f, :bright, *FACTIONS[f][:color]]
+    Paint[f, :bright, *FACTIONS[f][:color]] + (' ' * (7-f.length))
   end
   
   def mat_s(m)
     "#{m} (#{MATS[m][:n]})"
+  end
+  
+  def player_length
+    setups.keys.map(&:length).max
   end
 end
 
