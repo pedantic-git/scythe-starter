@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 # start.rb Alice Bob Charlie Dave Erin
+# start.rb --help
 
 require 'bundler/inline'
 
