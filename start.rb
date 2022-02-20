@@ -26,8 +26,8 @@ MATS = {
   Patriotic:    { n: '3' },
   Mechanical:   { n: '4' },
   Agricultural: { n: '5' },
-  Militant:     { n: '2A' },
-  Innovative:   { n: '3A' }
+  Militant:     { n: '2A', ifa: true },
+  Innovative:   { n: '3A', ifa: true }
 }
 
 S_BONUSES = [
@@ -36,16 +36,15 @@ S_BONUSES = [
 ]
 
 class Scythe
-  attr_reader :setups, :faction_queue, :mat_queue, :s_bonus
+  attr_reader :players, :setups, :faction_queue, :mat_queue, :s_bonus, :ifa
   
-  def initialize(players, options={})
+  def initialize(players, ifa: false)
     fail "Number of players must be between 1 and 7" if !(1..7).include? players.length
+    @players = players
+    @ifa = ifa
     
-    @faction_queue = FACTIONS.keys.shuffle
-    @mat_queue = MATS.keys.shuffle
-    
-    @setups = players.to_h {|player| [player, next_setup]}
-    @s_bonus = S_BONUSES.sample
+    shuffle
+    generate_setups
   end
   
   def print
@@ -58,6 +57,16 @@ class Scythe
   
   private
   
+  def shuffle
+    @faction_queue = valid_factions.shuffle
+    @mat_queue = valid_mats.shuffle
+    @s_bonus = S_BONUSES.sample
+  end
+  
+  def generate_setups
+    @setups = players.to_h {|player| [player, next_setup]}
+  end
+  
   def next_setup
     faction = faction_queue.shift
     # Take the top of mat queue unless it's banned (then take the next one)
@@ -67,6 +76,22 @@ class Scythe
       mat_queue.shift
     end
     {faction: faction, mat: mat}
+  end
+  
+  def valid_factions
+    if ifa
+      FACTIONS.keys
+    else
+      FACTIONS.keys.reject {|f| FACTIONS[f][:ifa]}
+    end
+  end
+  
+  def valid_mats
+    if ifa
+      MATS.keys
+    else
+      MATS.keys.reject {|m| MATS[m][:ifa]}
+    end
   end
   
   def faction_s(f)
@@ -82,10 +107,12 @@ class Scythe
   end
 end
 
+Clamp.allow_options_after_parameters = true
 Clamp do
   parameter "PLAYERS ...", "a list of players", attribute_name: :players
+  option "--[no-]ifa", :flag, "Invaders From Afar expansion?", default: true
   
   def execute
-    Scythe.new(players).print
+    Scythe.new(players, ifa: ifa?).print
   end
 end
