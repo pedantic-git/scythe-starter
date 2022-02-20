@@ -6,6 +6,7 @@ require 'bundler/inline'
 
 gemfile do
   source 'https://rubygems.org'
+  gem 'clamp', '~> 1.3'
   gem 'paint', '~> 2.2'
 end
 
@@ -15,8 +16,8 @@ FACTIONS = {
   Rusviet: { color: ['832B29', 'EF1016'], banned: :Industrial },
   Crimea:  { color: ['3A4810', 'FFC036'], banned: :Patriotic },
   Nordic:  { color: ['3C5CA0', '63C2E9'] },
-  Albion:  { color: ['775208', '1C3E19'] },
-  Togawa:  { color: ['FFFFFF', '5C1798'] }
+  Albion:  { color: ['775208', '1C3E19'], ifa: true },
+  Togawa:  { color: ['FFFFFF', '5C1798'], ifa: true }
 }
 
 MATS = {
@@ -81,5 +82,10 @@ class Scythe
   end
 end
 
-s = Scythe.new(ARGV)
-s.print
+Clamp do
+  parameter "PLAYERS ...", "a list of players", attribute_name: :players
+  
+  def execute
+    Scythe.new(players).print
+  end
+end
