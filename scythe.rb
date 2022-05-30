@@ -23,20 +23,41 @@ S_BONUSES = [
   'On tunnels', 'In a row', 'On farms or tundras'
 ]
 
+AIRSHIP_AGGRESSIVE = [
+  'Bombard', 'Bounty', 'Siege engine', 'Distract', 
+  'Espionage', 'Blitzkrieg', 'Toll', 'War correspondent'
+]
+
+AIRSHIP_PASSIVE = [
+  'Ferry', 'Boost', 'Drill', 'Hero',
+  'Safe haven', 'Reap', 'Craft', 'Negotiate'
+]
+
+RESOLUTIONS = [
+  'Land rush', 'Factory explosion', 'Spoils of war', 'King of the hill',
+  'Déjà Vu', 'Mission possible', 'Doomsday clock', 'Backup plan'
+]
+
 class Scythe
-  attr_reader :players, :setups, :faction_queue, :mat_queue, :s_bonus, :ifa
+  attr_reader :players, :setups, :faction_queue, :mat_queue, :s_bonus, :ifa,
+    :airships, :airship_passive, :airship_aggressive, :resolutions, :resolution
   
-  def initialize(players, ifa: false)
+  def initialize(players, ifa: false, airships: false, resolutions: false)
     fail "Number of players must be between 1 and 7" if !(1..7).include? players.length
     @players = players
     @ifa = ifa
+    @airships = airships
+    @resolutions = resolutions
     
     shuffle
     generate_setups
   end
   
   def print
+    puts
     puts "Structure bonus: #{s_bonus}"
+    puts "Resolution: #{resolution}" if resolutions
+    puts "Airship: #{airship_s}" if airships
     puts
     setups.each do |player, setup|
       puts "%#{player_length}s: %s / %s" % [player, faction_s(setup[:faction]), mat_s(setup[:mat])]
@@ -49,6 +70,13 @@ class Scythe
     @faction_queue = valid_factions.shuffle
     @mat_queue = valid_mats.shuffle
     @s_bonus = S_BONUSES.sample
+    if airships
+      @airship_aggressive = AIRSHIP_AGGRESSIVE.sample
+      @airship_passive = AIRSHIP_PASSIVE.sample
+    end
+    if resolutions
+      @resolution = RESOLUTIONS.sample
+    end
   end
   
   def generate_setups
@@ -88,6 +116,10 @@ class Scythe
   
   def mat_s(m)
     "#{m} (#{MATS[m][:n]})"
+  end
+  
+  def airship_s
+    Paint[airship_aggressive, :bright, :red] + ' / ' + Paint[airship_passive, :bright, :green]
   end
   
   def player_length
